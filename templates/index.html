@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Syntax Card Game</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="lobby-container">
+        <div class="lobby-wrapper">
+            <!-- Main Card -->
+            <div class="lobby-card">
+                <div class="lobby-logo">🐍</div>
+                <h1 class="lobby-title">Python Card Game</h1>
+                <p class="lobby-subtitle">A 1v1 syntax card battle</p>
+                
+                <input type="text" 
+                       id="playerNameInput" 
+                       class="lobby-input" 
+                       placeholder="Your name"
+                       maxlength="20">
+                
+                <button id="createGameBtn" class="lobby-btn primary">
+                    Create Game
+                </button>
+                
+                <div class="lobby-divider">
+                    <span>or join</span>
+                </div>
+                
+                <div class="join-row">
+                    <input type="text" 
+                           id="roomCodeInput" 
+                           class="lobby-input" 
+                           placeholder="CODE"
+                           maxlength="6">
+                    <button id="joinGameBtn" class="lobby-btn secondary">Join</button>
+                </div>
+                
+                <div id="statusMessage"></div>
+            </div>
+            
+            <!-- Rules Card -->
+            <div class="rules-card">
+                <h3 class="rules-title">How to Play</h3>
+                
+                <div class="rules-item">
+                    <h4>Goal</h4>
+                    <p>First to 50 points wins. Play Python syntax cards in valid sequences.</p>
+                </div>
+                
+                <div class="rules-item">
+                    <h4>Sequences</h4>
+                    <p>Cards must follow Python syntax order:<br>
+                    <code>for → x → in → range → ( → 10 → ) → :</code></p>
+                </div>
+                
+                <div class="rules-item">
+                    <h4>Card Types</h4>
+                    <p>
+                        <span class="card-badge loop">LOOP</span>
+                        <span class="card-badge variable">VAR</span>
+                        <span class="card-badge keyword">KEY</span>
+                        <span class="card-badge function">FUNC</span>
+                        <span class="card-badge value">VAL</span>
+                        <span class="card-badge operator">OP</span>
+                    </p>
+                </div>
+                
+                <div class="rules-item">
+                    <h4>Points</h4>
+                    <p>Common = 1pt • Uncommon = 2pt • Rare = 3pt</p>
+                </div>
+                
+                <div class="rules-item">
+                    <h4>Special Cards</h4>
+                    <p>Draw 2 • Skip • Wild — can be played anytime!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+    
+    <style>
+        /* Lobby-specific styles */
+        .lobby-wrapper {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+        
+        .lobby-logo {
+            font-size: 4rem;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .card-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin: 2px;
+        }
+        
+        .card-badge.loop { background: #dc2626; color: white; }
+        .card-badge.variable { background: #2563eb; color: white; }
+        .card-badge.keyword { background: #7c3aed; color: white; }
+        .card-badge.function { background: #059669; color: white; }
+        .card-badge.value { background: #d97706; color: white; }
+        .card-badge.operator { background: #db2777; color: white; }
+        
+        .rules-item code {
+            display: inline-block;
+            background: var(--bg-tertiary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .lobby-wrapper {
+                flex-direction: column;
+            }
+            
+            .lobby-card,
+            .rules-card {
+                max-width: 100%;
+            }
+        }
+    </style>
+</body>
+</html>
