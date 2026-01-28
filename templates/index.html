@@ -379,6 +379,10 @@
             gap: 35px;
             align-items: flex-start;
             animation: fadeInUp 0.6s ease-out;
+            width: 100%;
+            max-width: 1400px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         
         @keyframes fadeInUp {
@@ -465,20 +469,251 @@
             }
         }
         
-        @media (max-width: 768px) {
+        /* Large tablets / small laptops - 2 column layout */
+        @media (max-width: 1200px) {
+            .lobby-wrapper {
+                flex-wrap: wrap;
+                justify-content: center;
+                max-width: 900px;
+                margin: 0 auto;
+            }
+            
+            .lobby-card {
+                flex: 1 1 380px;
+                max-width: 420px;
+            }
+            
+            .rooms-card {
+                flex: 1 1 380px;
+                max-width: 420px;
+            }
+            
+            .rules-card {
+                flex: 1 1 100%;
+                max-width: 100%;
+                order: 3;
+            }
+            
+            .rules-card .rules-item {
+                display: inline-block;
+                width: calc(50% - 10px);
+                vertical-align: top;
+                margin-right: 10px;
+            }
+        }
+        
+        /* Tablets - stack all cards */
+        @media (max-width: 900px) {
             .lobby-wrapper {
                 flex-direction: column;
                 align-items: center;
+                gap: 25px;
+                padding: 10px;
             }
             
             .lobby-card,
-            .rules-card,
-            .rooms-card {
+            .rooms-card,
+            .rules-card {
+                max-width: 500px;
+                width: 100%;
+            }
+            
+            .rules-card .rules-item {
+                display: block;
+                width: 100%;
+                margin-right: 0;
+            }
+            
+            .lobby-logo {
+                font-size: 4rem;
+            }
+        }
+        
+        /* Mobile phones */
+        @media (max-width: 600px) {
+            .lobby-wrapper {
+                gap: 20px;
+                padding: 5px;
+            }
+            
+            .lobby-card,
+            .rooms-card,
+            .rules-card {
                 max-width: 100%;
+                padding: 25px 20px;
+                border-radius: 16px;
             }
             
             .lobby-logo {
                 font-size: 3.5rem;
+                margin-bottom: 10px;
+            }
+            
+            .lobby-title {
+                font-size: 1.5rem !important;
+            }
+            
+            .lobby-subtitle {
+                font-size: 0.85rem;
+                margin-bottom: 25px;
+            }
+            
+            .lobby-input {
+                padding: 14px 16px;
+                font-size: 0.95rem;
+            }
+            
+            .lobby-btn {
+                padding: 14px;
+                font-size: 0.95rem;
+            }
+            
+            .lobby-btn.quick-match {
+                padding: 16px 14px;
+            }
+            
+            .quick-match-icon {
+                font-size: 1.3rem;
+            }
+            
+            .quick-match-text {
+                font-size: 1rem;
+            }
+            
+            .lobby-btn.ai-match {
+                padding: 14px;
+            }
+            
+            .ai-match-icon {
+                font-size: 1.1rem;
+            }
+            
+            .ai-match-text {
+                font-size: 0.95rem;
+            }
+            
+            .lobby-divider {
+                margin: 20px 0;
+            }
+            
+            .join-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .join-row .lobby-input {
+                width: 100%;
+                letter-spacing: 3px;
+                font-size: 1rem;
+            }
+            
+            .join-row .lobby-btn {
+                width: 100%;
+                padding: 14px;
+            }
+            
+            /* Rooms card mobile */
+            .rooms-card {
+                min-height: 200px;
+            }
+            
+            .rooms-header {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .rooms-title {
+                font-size: 0.9rem;
+            }
+            
+            .rooms-list {
+                max-height: 220px;
+            }
+            
+            .room-item {
+                padding: 12px 14px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .room-info {
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .room-code {
+                font-size: 0.85rem;
+            }
+            
+            .room-players {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .room-join-btn {
+                flex: 1;
+                text-align: center;
+            }
+            
+            /* Rules card mobile */
+            .rules-header {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .rules-title {
+                font-size: 0.95rem;
+            }
+            
+            .tutorial-start-btn {
+                padding: 6px 12px;
+                font-size: 0.75rem;
+            }
+            
+            .rules-item {
+                margin-bottom: 14px;
+                padding-left: 12px;
+            }
+            
+            .rules-item h4 {
+                font-size: 0.85rem;
+            }
+            
+            .rules-item p {
+                font-size: 0.8rem;
+            }
+            
+            .card-badge {
+                padding: 2px 8px;
+                font-size: 0.65rem;
+                margin: 2px;
+            }
+        }
+        
+        /* Very small phones */
+        @media (max-width: 380px) {
+            .lobby-card,
+            .rooms-card,
+            .rules-card {
+                padding: 20px 15px;
+            }
+            
+            .lobby-logo {
+                font-size: 3rem;
+            }
+            
+            .lobby-title {
+                font-size: 1.3rem !important;
+            }
+            
+            .quick-match-text,
+            .ai-match-text {
+                font-size: 0.9rem;
+            }
+            
+            .quick-match-hint,
+            .ai-match-hint {
+                font-size: 0.6rem;
             }
         }
         
@@ -1058,6 +1293,46 @@
             color: var(--text-muted);
         }
         
+        /* AI Modal responsive */
+        @media (max-width: 500px) {
+            .ai-modal {
+                padding: 25px 20px;
+                margin: 15px;
+                width: calc(100% - 30px);
+                max-width: none;
+            }
+            
+            .ai-modal-header h2 {
+                font-size: 1.4rem;
+            }
+            
+            .ai-modal-icon {
+                font-size: 2.5rem;
+            }
+            
+            .ai-difficulty-btn {
+                padding: 14px 15px;
+                gap: 12px;
+            }
+            
+            .difficulty-icon {
+                font-size: 1.5rem;
+            }
+            
+            .difficulty-info h3 {
+                font-size: 0.95rem;
+            }
+            
+            .difficulty-info p {
+                font-size: 0.7rem;
+            }
+            
+            .difficulty-badge {
+                padding: 3px 8px;
+                font-size: 0.6rem;
+            }
+        }
+        
         /* Rules card header with tutorial button */
         .rules-header {
             display: flex;
@@ -1269,6 +1544,128 @@
         .tutorial-close-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 30px rgba(74, 222, 128, 0.4);
+        }
+        
+        /* Tutorial Modal responsive */
+        @media (max-width: 650px) {
+            .lobby-tutorial-modal {
+                padding: 25px 20px;
+                margin: 15px;
+                width: calc(100% - 30px);
+                max-width: none;
+                max-height: 90vh;
+            }
+            
+            .lobby-tutorial-header h2 {
+                font-size: 1.4rem;
+            }
+            
+            .lobby-tutorial-icon {
+                font-size: 3rem;
+            }
+            
+            .lobby-tutorial-step {
+                padding: 15px;
+                gap: 14px;
+            }
+            
+            .step-number {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
+            
+            .step-content h4 {
+                font-size: 0.95rem;
+            }
+            
+            .step-content p {
+                font-size: 0.85rem;
+            }
+            
+            .tutorial-cards-preview {
+                gap: 6px;
+            }
+            
+            .tutorial-card-type {
+                padding: 4px 10px;
+                font-size: 0.7rem;
+            }
+            
+            .tutorial-close-btn {
+                padding: 12px 28px;
+                font-size: 0.95rem;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .lobby-tutorial-modal {
+                padding: 20px 15px;
+            }
+            
+            .lobby-tutorial-header h2 {
+                font-size: 1.2rem;
+            }
+            
+            .lobby-tutorial-icon {
+                font-size: 2.5rem;
+                margin-bottom: 10px;
+            }
+            
+            .lobby-tutorial-steps {
+                gap: 15px;
+            }
+            
+            .lobby-tutorial-step {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .step-number {
+                width: 32px;
+                height: 32px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Profile Modal responsive */
+        @media (max-width: 500px) {
+            .profile-modal,
+            .leaderboard-modal {
+                padding: 25px 20px;
+                margin: 15px;
+                width: calc(100% - 30px);
+                max-width: none;
+            }
+            
+            .profile-stats {
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+            
+            .profile-stats .stat-item {
+                flex: 1 1 40%;
+            }
+        }
+        
+        /* Auth Modal responsive */
+        @media (max-width: 500px) {
+            .auth-modal {
+                padding: 25px 20px;
+                margin: 15px;
+                width: calc(100% - 30px);
+                max-width: none;
+            }
+            
+            .auth-tabs {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .auth-tab {
+                padding: 12px 20px;
+            }
         }
     </style>
     

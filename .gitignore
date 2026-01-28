@@ -31,6 +31,9 @@ serviceAccountKey.json
 # Logs
 *.log
 
+# Local persistent data (stats, game history)
+data/
+
 # Distribution
 dist/
 build/

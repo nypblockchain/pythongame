@@ -51,14 +51,82 @@ ai_games = {}
 socket_to_uid = {}
 
 # =============================================================================
-# IN-MEMORY STATS STORAGE (since Firestore is disabled)
+# PERSISTENT STATS STORAGE (saves to JSON files)
 # =============================================================================
+
+import json
+
+# File paths for persistent storage
+DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+USER_STATS_FILE = os.path.join(DATA_DIR, 'user_stats.json')
+GAME_HISTORY_FILE = os.path.join(DATA_DIR, 'game_history.json')
 
 # Store user stats in memory (uid -> stats dict)
 memory_user_stats = {}
 
 # Store game history in memory (list of game records)
 memory_game_history = []
+
+
+def ensure_data_dir():
+    """Ensure the data directory exists."""
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
+        print(f"[STORAGE] Created data directory: {DATA_DIR}")
+
+
+def load_persistent_data():
+    """Load user stats and game history from JSON files on startup."""
+    global memory_user_stats, memory_game_history
+    
+    ensure_data_dir()
+    
+    # Load user stats
+    if os.path.exists(USER_STATS_FILE):
+        try:
+            with open(USER_STATS_FILE, 'r', encoding='utf-8') as f:
+                memory_user_stats = json.load(f)
+            print(f"[STORAGE] Loaded {len(memory_user_stats)} user stats from disk")
+        except Exception as e:
+            print(f"[STORAGE] Error loading user stats: {e}")
+            memory_user_stats = {}
+    else:
+        print("[STORAGE] No user stats file found, starting fresh")
+    
+    # Load game history
+    if os.path.exists(GAME_HISTORY_FILE):
+        try:
+            with open(GAME_HISTORY_FILE, 'r', encoding='utf-8') as f:
+                memory_game_history = json.load(f)
+            print(f"[STORAGE] Loaded {len(memory_game_history)} games from disk")
+        except Exception as e:
+            print(f"[STORAGE] Error loading game history: {e}")
+            memory_game_history = []
+    else:
+        print("[STORAGE] No game history file found, starting fresh")
+
+
+def save_user_stats():
+    """Save user stats to JSON file."""
+    ensure_data_dir()
+    try:
+        with open(USER_STATS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(memory_user_stats, f, indent=2)
+        print(f"[STORAGE] Saved {len(memory_user_stats)} user stats to disk")
+    except Exception as e:
+        print(f"[STORAGE] Error saving user stats: {e}")
+
+
+def save_game_history():
+    """Save game history to JSON file."""
+    ensure_data_dir()
+    try:
+        with open(GAME_HISTORY_FILE, 'w', encoding='utf-8') as f:
+            json.dump(memory_game_history, f, indent=2)
+        print(f"[STORAGE] Saved {len(memory_game_history)} games to disk")
+    except Exception as e:
+        print(f"[STORAGE] Error saving game history: {e}")
+
 
 def get_or_create_user_stats(uid, display_name=None):
     """Get user stats from memory, creating if needed."""
@@ -71,26 +139,33 @@ def get_or_create_user_stats(uid, display_name=None):
             'totalScore': 0,
             'highestScore': 0
         }
+        save_user_stats()  # Save when new user is created
     elif display_name and memory_user_stats[uid]['displayName'] == 'Player':
         memory_user_stats[uid]['displayName'] = display_name
+        save_user_stats()  # Save when display name is updated
     return memory_user_stats[uid]
 
+
 def update_memory_stats(uid, display_name, score, won):
-    """Update user stats in memory after a game."""
+    """Update user stats in memory after a game and persist to disk."""
     stats = get_or_create_user_stats(uid, display_name)
     stats['gamesPlayed'] += 1
     if won:
         stats['gamesWon'] += 1
     stats['totalScore'] += score
     stats['highestScore'] = max(stats['highestScore'], score)
+    save_user_stats()  # Persist after every game
     return stats
 
+
 def add_game_to_history(game_record):
-    """Add a game to the in-memory history."""
+    """Add a game to the history and persist to disk."""
     memory_game_history.insert(0, game_record)  # Add to front
     # Keep only last 100 games
     if len(memory_game_history) > 100:
         memory_game_history.pop()
+    save_game_history()  # Persist after every game
+
 
 def get_memory_leaderboard(limit=50):
     """Get leaderboard from memory stats."""
@@ -123,10 +198,15 @@ def get_memory_leaderboard(limit=50):
     
     return leaderboard
 
+
 def get_user_game_history_memory(uid, limit=20):
     """Get game history for a user from memory."""
     user_games = [g for g in memory_game_history if uid in g.get('players', [])]
     return user_games[:limit]
+
+
+# Load data from disk when module is imported
+load_persistent_data()
 
 # =============================================================================
 # HTTP ROUTES
