@@ -1,5 +1,7 @@
 # Python Syntax Card Game
 
+**[Play Now](https://python-game-iokr.onrender.com/)**
+
 A browser-based 1v1 card game where players compete by playing Python syntax cards. Built with Flask and Socket.IO for real-time multiplayer gameplay, featuring AI opponents and Firebase authentication.
 
 ## Game Overview
