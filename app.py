@@ -133,6 +133,12 @@ def get_user_game_history_memory(uid, limit=20):
 # =============================================================================
 
 
+@app.route('/health')
+def health():
+    """Health check endpoint for keep-alive pings."""
+    return 'OK', 200
+
+
 @app.route('/')
 def index():
     """Home page - game lobby."""
