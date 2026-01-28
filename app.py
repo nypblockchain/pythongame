@@ -3,10 +3,6 @@ Python Syntax Card Game - Main Flask Application
 A browser-based 1v1 card game where players compete by playing Python syntax cards.
 """
 
-# Eventlet monkey patching must happen before any other imports
-import eventlet
-eventlet.monkey_patch()
-
 import os
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
@@ -43,7 +39,7 @@ else:
     print("Warning: Firebase not initialized - auth features disabled")
 
 # Initialize Socket.IO for real-time communication
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # Track which player is in which room (socket_id: room_code)
 player_rooms = {}
