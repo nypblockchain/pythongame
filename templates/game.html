@@ -2,15 +2,101 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f0f1a">
+    <meta name="description" content="Python Syntax Card Game - A 1v1 card battle game">
     <title>Python Card Game - Room {{ room_code }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Loading screen */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .loading-logo {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: loadingPulse 1.5s ease-in-out infinite;
+        }
+        .loading-text {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+        }
+        .loading-dots::after {
+            content: '';
+            animation: loadingDots 1.5s infinite;
+        }
+        @keyframes loadingPulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+        @keyframes loadingDots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        /* Mobile game controls */
+        .mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            gap: 15px;
+            z-index: 50;
+        }
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: flex;
+            }
+        }
+        .mobile-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--bg-card);
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+        .mobile-btn:active {
+            transform: scale(0.95);
+            background: var(--bg-card);
+        }
+        .mobile-btn.pass-btn:not(:disabled) {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: var(--bg-primary);
+        }
+    </style>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">🐍</div>
+        <div class="loading-text"><span class="loading-dots">CONNECTING</span></div>
+    </div>
     <div class="game-board">
         <!-- Opponent Area -->
         <div class="opponent-area">
@@ -42,13 +128,29 @@
                 </div>
             </div>
 
-            <!-- Play Area -->
-            <div class="play-zone">
-                <div class="sequence-label">Python Sequence</div>
-                <div id="playedCards" class="played-sequence">
-                    <div class="empty-sequence">Play a card to begin</div>
+            <!-- Play Area - Code Editor Style -->
+            <div class="play-zone code-editor-zone">
+                <div class="code-editor-header">
+                    <div class="editor-tabs">
+                        <span class="editor-tab active">
+                            <span class="tab-icon">🐍</span>
+                            <span class="tab-name">game.py</span>
+                        </span>
+                    </div>
+                    <div class="syntax-status main-status" id="mainSyntaxStatus"></div>
                 </div>
-                <div class="last-card-hint" id="lastCardHint"></div>
+                <div class="code-editor-body" id="playedCards">
+                    <div class="code-editor main-editor">
+                        <div class="code-line empty-line">
+                            <span class="line-number">1</span>
+                            <span class="line-content"><span class="code-comment"># Play a card to start coding...</span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="code-editor-footer">
+                    <div class="code-structure main-structure" id="mainCodeStructure"></div>
+                    <div class="last-card-hint" id="lastCardHint"></div>
+                </div>
             </div>
 
             <!-- Right sidebar with actions -->
@@ -94,35 +196,231 @@
             <div class="progress-bar">
                 <div class="progress-fill opponent" id="opponentProgress" style="width: 0%"></div>
             </div>
-            <span class="progress-label">50 to win</span>
+            <span class="progress-label">Deck remaining</span>
             <div class="progress-bar">
                 <div class="progress-fill you" id="yourProgress" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <!-- Syntax Preview Panel - Code Editor Style -->
+        <div class="syntax-preview" id="syntaxPreview">
+            <div class="syntax-preview-header">
+                <div class="editor-tabs">
+                    <span class="editor-tab active">
+                        <span class="tab-icon">🐍</span>
+                        <span class="tab-name">game.py</span>
+                    </span>
+                </div>
+                <div class="syntax-status" id="syntaxStatus"></div>
+                <button class="syntax-preview-toggle" id="syntaxToggleBtn" title="Toggle preview">
+                    <span class="toggle-icon">−</span>
+                </button>
+            </div>
+            <div class="syntax-preview-body" id="syntaxPreviewBody">
+                <div class="code-structure" id="codeStructure"></div>
+                <div class="syntax-code" id="syntaxCode">
+                    <div class="code-editor">
+                        <div class="code-line">
+                            <span class="line-number">1</span>
+                            <span class="line-content"><span class="code-comment"># Play cards to build Python code...</span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="syntax-suggestions" id="syntaxSuggestions"></div>
             </div>
         </div>
     </div>
 
     <!-- Game Over Modal -->
     <div class="modal fade" id="gameOverModal" tabindex="-1" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content game-over-modal">
-                <div class="modal-body text-center py-5">
+                <div class="modal-body text-center py-4">
                     <h1 id="gameResult" class="game-result"></h1>
                     <p id="finalScores" class="final-scores"></p>
                     <p id="gameEndReason" class="game-reason"></p>
-                    <a href="/" class="play-again-btn">Play Again</a>
+                    
+                    <!-- Final Code Preview -->
+                    <div class="final-code-section" id="finalCodeSection">
+                        <h4 class="final-code-title">Python Code Built:</h4>
+                        <pre class="final-code-block" id="finalCodeBlock"><code></code></pre>
+                    </div>
+                    
+                    <!-- Game Stats -->
+                    <div class="game-stats" id="gameStats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="statCardsPlayed">0</span>
+                            <span class="stat-label">Cards Played</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="statTurns">0</span>
+                            <span class="stat-label">Turns</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="statDeckRemaining">0</span>
+                            <span class="stat-label">Deck Left</span>
+                        </div>
+                    </div>
+                    
+                    <!-- What You Learned -->
+                    <div class="learned-section" id="learnedSection" style="display: none;">
+                        <h4 class="learned-title">Concepts Used:</h4>
+                        <div class="learned-badges" id="learnedBadges"></div>
+                    </div>
+                    
+                    <!-- Achievements Earned -->
+                    <div class="game-over-achievements" id="gameOverAchievements" style="display: none;">
+                        <h4 class="game-over-achievements-title">🏆 Achievements</h4>
+                        <div class="game-over-achievement-badges"></div>
+                    </div>
+                    
+                    <div class="game-over-actions">
+                        <a href="/" class="play-again-btn">Play Again</a>
+                        <button class="share-btn" id="shareResultBtn" title="Share result">
+                            <span>📤</span> Share
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Power Selection Modal -->
+    <div class="power-modal-overlay" id="powerModalOverlay">
+        <div class="power-modal">
+            <div class="power-modal-header">
+                <span class="power-modal-icon">⚡</span>
+                <h2 class="power-modal-title">Special Power Ready!</h2>
+                <p class="power-modal-subtitle">Choose one power to activate</p>
+            </div>
+            <div class="power-options" id="powerOptions">
+                <!-- Power options will be rendered by JavaScript -->
+            </div>
+            <button class="power-skip-btn" id="powerSkipBtn">Skip Power</button>
+        </div>
+    </div>
+
+    <!-- Peek Modal (for showing opponent's cards) -->
+    <div class="peek-modal-overlay" id="peekModalOverlay">
+        <div class="peek-modal">
+            <div class="peek-modal-header">
+                <span class="peek-icon">👁️</span>
+                <h2>Opponent's Cards</h2>
+                <p class="peek-timer">Viewing for <span id="peekCountdown">5</span>s</p>
+            </div>
+            <div class="peeked-cards" id="peekedCards">
+                <!-- Peeked cards will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Power Indicator (shows when power is available) -->
+    <div class="power-indicator" id="powerIndicator" style="display: none;">
+        <button class="power-btn" id="usePowerBtn" title="Use Special Power">
+            <span class="power-btn-icon">⚡</span>
+            <span class="power-btn-text">POWER</span>
+        </button>
+    </div>
+
+    <!-- Active Effect Indicator -->
+    <div class="active-effect-indicator" id="activeEffectIndicator" style="display: none;">
+        <span class="effect-icon" id="effectIcon">⚡</span>
+        <span class="effect-text" id="effectText">Double Points</span>
+    </div>
+
+    <!-- Power Progress (turns until power) -->
+    <div class="power-progress" id="powerProgress">
+        <div class="power-progress-bar">
+            <div class="power-progress-fill" id="powerProgressFill" style="width: 0%"></div>
+        </div>
+        <span class="power-progress-text" id="powerProgressText">5 turns</span>
+    </div>
+
     <!-- Notification Container -->
     <div id="notificationContainer" class="notification-container"></div>
+
+    <!-- Card Tooltip -->
+    <div id="cardTooltip" class="card-tooltip" role="tooltip">
+        <div class="tooltip-header">
+            <div class="tooltip-card-info">
+                <div class="tooltip-card-name" id="tooltipCardName">for</div>
+                <div class="tooltip-card-category" id="tooltipCategory">Loop</div>
+            </div>
+            <div class="tooltip-points" id="tooltipPoints">2pt</div>
+        </div>
+        <div class="tooltip-body">
+            <div class="tooltip-section">
+                <div class="tooltip-section-label">Python Tip</div>
+                <div class="tooltip-python-tip" id="tooltipTip">
+                    The 'for' loop iterates over each item in a sequence.
+                </div>
+            </div>
+            <div class="tooltip-section">
+                <div class="tooltip-section-label">Example</div>
+                <div class="tooltip-code-block" id="tooltipExample">
+for i in range(5):
+    print(i)
+                </div>
+            </div>
+        </div>
+        <div class="tooltip-footer">
+            <div class="tooltip-status playable" id="tooltipStatus">
+                <span class="tooltip-status-icon">✓</span>
+                <span class="tooltip-status-text">Playable</span>
+            </div>
+            <div class="tooltip-reason" id="tooltipReason"></div>
+        </div>
+    </div>
+
+    <!-- Mobile Controls -->
+    <div class="mobile-controls">
+        <button class="mobile-btn" onclick="document.getElementById('chatPanel')?.classList.toggle('open')" title="Chat">💬</button>
+        <button class="mobile-btn pass-btn" id="mobilePassBtn" disabled onclick="document.getElementById('endTurnBtn')?.click()" title="Pass Turn">⏭️</button>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
         const ROOM_CODE = "{{ room_code }}";
+        
+        // Hide loading screen when game is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hide loading screen after a brief delay
+            setTimeout(() => {
+                const loadingScreen = document.getElementById('loadingScreen');
+                if (loadingScreen) {
+                    loadingScreen.classList.add('hidden');
+                    setTimeout(() => loadingScreen.remove(), 500);
+                }
+            }, 800);
+            
+            // Sync mobile pass button with main button
+            const observer = new MutationObserver(() => {
+                const mainBtn = document.getElementById('endTurnBtn');
+                const mobileBtn = document.getElementById('mobilePassBtn');
+                if (mainBtn && mobileBtn) {
+                    mobileBtn.disabled = mainBtn.disabled;
+                }
+            });
+            
+            const mainBtn = document.getElementById('endTurnBtn');
+            if (mainBtn) {
+                observer.observe(mainBtn, { attributes: true, attributeFilter: ['disabled'] });
+            }
+        });
     </script>
     <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+    <script>
+        // Initialize tutorial system after game.js has loaded
+        // This runs synchronously after game.js is parsed
+        setTimeout(function() {
+            if (typeof initTutorial === 'function') {
+                initTutorial();
+                console.log('Tutorial system initialized');
+            } else {
+                console.error('initTutorial function not found');
+            }
+        }, 1500);
+    </script>
 </body>
 </html>

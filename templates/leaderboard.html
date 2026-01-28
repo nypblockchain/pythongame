@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f0f1a">
+    <meta name="description" content="Python Syntax Card Game - Leaderboard">
+    <title>Leaderboard - Python Card Game</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            overflow-y: auto;
+            min-height: 100vh;
+            background-color: #0f0f1a;
+            color: #ffffff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .leaderboard-page {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .page-header-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            animation: trophyBounce 2s ease-in-out infinite;
+        }
+        
+        @keyframes trophyBounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-8px) rotate(-5deg); }
+            75% { transform: translateY(-8px) rotate(5deg); }
+        }
+        
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+        
+        .page-header p {
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+        
+        /* Sort Options */
+        .sort-options {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .sort-btn {
+            padding: 10px 20px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--bg-card);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .sort-btn:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        
+        .sort-btn.active {
+            background: linear-gradient(135deg, var(--accent-gold) 0%, #b8860b 100%);
+            border-color: var(--accent-gold);
+            color: var(--bg-primary);
+        }
+        
+        /* Leaderboard Table */
+        .leaderboard-container {
+            background: linear-gradient(145deg, var(--bg-secondary) 0%, rgba(26, 26, 46, 0.95) 100%);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .leaderboard-table th {
+            padding: 18px 20px;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--bg-card);
+        }
+        
+        .leaderboard-table th:first-child {
+            width: 80px;
+            text-align: center;
+        }
+        
+        .leaderboard-table td {
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            vertical-align: middle;
+        }
+        
+        .leaderboard-table tbody tr {
+            transition: all 0.2s ease;
+        }
+        
+        .leaderboard-table tbody tr:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .leaderboard-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Rank Column */
+        .rank-cell {
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .rank-medal {
+            font-size: 1.8rem;
+        }
+        
+        .rank-number {
+            color: var(--text-muted);
+        }
+        
+        /* Player Column */
+        .player-cell {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .player-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-tertiary) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        
+        .player-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .player-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .player-name.current-user {
+            color: var(--accent-gold);
+        }
+        
+        .player-name .you-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--accent-gold);
+            color: var(--bg-primary);
+            font-size: 0.6rem;
+            font-weight: 700;
+            border-radius: 10px;
+            margin-left: 8px;
+            text-transform: uppercase;
+        }
+        
+        /* Stats Cells */
+        .stat-cell {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .stat-value.gold {
+            color: var(--accent-gold);
+        }
+        
+        .stat-value.green {
+            color: var(--accent-green);
+        }
+        
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: none;
+        }
+        
+        /* Top 3 Highlights */
+        .leaderboard-table tbody tr.rank-1 {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, transparent 100%);
+        }
+        
+        .leaderboard-table tbody tr.rank-2 {
+            background: linear-gradient(90deg, rgba(192, 192, 192, 0.08) 0%, transparent 100%);
+        }
+        
+        .leaderboard-table tbody tr.rank-3 {
+            background: linear-gradient(90deg, rgba(205, 127, 50, 0.08) 0%, transparent 100%);
+        }
+        
+        .leaderboard-table tbody tr.current-user-row {
+            background: linear-gradient(90deg, rgba(74, 158, 255, 0.1) 0%, transparent 100%);
+            border: 1px solid rgba(74, 158, 255, 0.3);
+        }
+        
+        /* Top Navigation */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: rgba(15, 15, 26, 0.95);
+            border-bottom: 1px solid var(--bg-tertiary);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+        
+        .nav-brand-icon {
+            font-size: 1.8rem;
+        }
+        
+        .nav-brand-text {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-link {
+            padding: 10px 18px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-link:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        
+        .nav-link.active {
+            background: linear-gradient(135deg, var(--accent-gold) 0%, #b8860b 100%);
+            color: var(--bg-primary);
+        }
+        
+        /* Loading & Empty States */
+        .loading-state, .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted);
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--bg-card);
+            border-top-color: var(--accent-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        /* Global Stats */
+        .global-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .global-stat {
+            text-align: center;
+        }
+        
+        .global-stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+        
+        .global-stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .leaderboard-table th,
+            .leaderboard-table td {
+                padding: 12px 10px;
+            }
+            
+            .player-cell {
+                gap: 10px;
+            }
+            
+            .player-avatar {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
+            
+            .stat-label {
+                display: block;
+            }
+            
+            .hide-mobile {
+                display: none;
+            }
+            
+            .sort-options {
+                gap: 8px;
+            }
+            
+            .sort-btn {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <a href="/" class="nav-brand">
+            <span class="nav-brand-icon">🐍</span>
+            <span class="nav-brand-text">Python Card Game</span>
+        </a>
+        <div class="nav-links">
+            <a href="/" class="nav-link">
+                <span>🎮</span> Play
+            </a>
+            <a href="/leaderboard" class="nav-link active">
+                <span>🏆</span> Leaderboard
+            </a>
+            <a href="/profile" class="nav-link" id="profileLink">
+                <span>👤</span> Profile
+            </a>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="leaderboard-page">
+        <div class="page-header">
+            <div class="page-header-icon">🏆</div>
+            <h1>Leaderboard</h1>
+            <p>Top Python Card Game players ranked by performance</p>
+        </div>
+        
+        <!-- Global Stats -->
+        <div class="global-stats" id="globalStats">
+            <div class="global-stat">
+                <div class="global-stat-value" id="totalPlayers">-</div>
+                <div class="global-stat-label">Total Players</div>
+            </div>
+            <div class="global-stat">
+                <div class="global-stat-value" id="totalGames">-</div>
+                <div class="global-stat-label">Games Played</div>
+            </div>
+            <div class="global-stat">
+                <div class="global-stat-value" id="totalPvP">-</div>
+                <div class="global-stat-label">PvP Games</div>
+            </div>
+        </div>
+        
+        <!-- Sort Options -->
+        <div class="sort-options">
+            <button class="sort-btn active" data-sort="gamesWon">🏆 Wins</button>
+            <button class="sort-btn" data-sort="winRate">📈 Win Rate</button>
+            <button class="sort-btn" data-sort="totalScore">💎 Total Score</button>
+            <button class="sort-btn" data-sort="highestScore">⭐ Best Score</button>
+            <button class="sort-btn" data-sort="gamesPlayed">🎮 Games</button>
+        </div>
+        
+        <!-- Leaderboard Table -->
+        <div class="leaderboard-container">
+            <div class="loading-state" id="loadingState">
+                <div class="loading-spinner"></div>
+                <span>Loading leaderboard...</span>
+            </div>
+            
+            <table class="leaderboard-table" id="leaderboardTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Player</th>
+                        <th>Wins</th>
+                        <th>Games</th>
+                        <th class="hide-mobile">Win Rate</th>
+                        <th class="hide-mobile">Total Score</th>
+                        <th>Best</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+            
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="icon">🏆</div>
+                <h3>No Players Yet</h3>
+                <p>Be the first to join the leaderboard!</p>
+                <a href="/" style="color: var(--accent-gold); text-decoration: none; font-weight: 600;">Start Playing →</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCCGYaBp2cHREU99RdQKutoqhEGCfva_8A",
+            authDomain: "pythongame-7b673.firebaseapp.com",
+            projectId: "pythongame-7b673",
+            storageBucket: "pythongame-7b673.firebasestorage.app",
+            messagingSenderId: "444834425195",
+            appId: "1:444834425195:web:17523219688d8ff2f4042e"
+        };
+        
+        let currentUserUid = null;
+        let authToken = null;
+        let currentSort = 'gamesWon';
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Leaderboard page loading...');
+            
+            // Load leaderboard immediately (don't wait for auth)
+            loadLeaderboard(currentSort);
+            loadGlobalStats();
+            
+            // Setup sort buttons
+            document.querySelectorAll('.sort-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentSort = this.dataset.sort;
+                    loadLeaderboard(currentSort);
+                });
+            });
+            
+            // Try to initialize Firebase for user highlighting
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                    console.log('Firebase initialized');
+                }
+                
+                firebase.auth().onAuthStateChanged(async (user) => {
+                    if (user) {
+                        currentUserUid = user.uid;
+                        try {
+                            authToken = await user.getIdToken();
+                            console.log('User authenticated:', user.email);
+                            // Reload leaderboard to highlight current user
+                            loadLeaderboard(currentSort);
+                        } catch (e) {
+                            console.log('Could not get auth token');
+                        }
+                    }
+                });
+            } catch (error) {
+                console.log('Firebase init skipped:', error.message);
+            }
+        });
+        
+        async function loadGlobalStats() {
+            console.log('Loading global stats...');
+            try {
+                const response = await fetch('/api/stats/global');
+                console.log('Global stats response:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Global stats data:', data);
+                    const stats = data.stats || {};
+                    
+                    document.getElementById('totalPlayers').textContent = stats.totalUsers || 0;
+                    document.getElementById('totalGames').textContent = stats.totalGames || 0;
+                    document.getElementById('totalPvP').textContent = stats.totalPvPGames || 0;
+                } else {
+                    console.error('Global stats failed:', response.status);
+                }
+            } catch (error) {
+                console.error('Error loading global stats:', error);
+            }
+        }
+        
+        async function loadLeaderboard(sortBy = 'gamesWon') {
+            console.log('Loading leaderboard, sort by:', sortBy);
+            const loadingState = document.getElementById('loadingState');
+            const table = document.getElementById('leaderboardTable');
+            const emptyState = document.getElementById('emptyState');
+            const tbody = document.getElementById('leaderboardBody');
+            
+            loadingState.style.display = 'block';
+            table.style.display = 'none';
+            emptyState.style.display = 'none';
+            
+            try {
+                const headers = {};
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+                
+                const response = await fetch(`/api/leaderboard/advanced?limit=50&sort_by=${sortBy}`, { headers });
+                console.log('Leaderboard response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Leaderboard error:', errorText);
+                    throw new Error('Failed to load leaderboard: ' + response.status);
+                }
+                
+                const data = await response.json();
+                console.log('Leaderboard data:', data);
+                const leaderboard = data.leaderboard || [];
+                
+                loadingState.style.display = 'none';
+                
+                if (leaderboard.length === 0) {
+                    emptyState.style.display = 'block';
+                    return;
+                }
+                
+                table.style.display = 'table';
+                tbody.innerHTML = leaderboard.map((player, index) => {
+                    const isCurrentUser = player.uid === currentUserUid;
+                    const rankClass = index < 3 ? `rank-${index + 1}` : '';
+                    const userClass = isCurrentUser ? 'current-user-row' : '';
+                    
+                    let rankDisplay;
+                    if (index === 0) rankDisplay = '<span class="rank-medal">🥇</span>';
+                    else if (index === 1) rankDisplay = '<span class="rank-medal">🥈</span>';
+                    else if (index === 2) rankDisplay = '<span class="rank-medal">🥉</span>';
+                    else rankDisplay = `<span class="rank-number">#${player.rank}</span>`;
+                    
+                    return `
+                        <tr class="${rankClass} ${userClass}">
+                            <td class="rank-cell">${rankDisplay}</td>
+                            <td>
+                                <div class="player-cell">
+                                    <div class="player-avatar">👤</div>
+                                    <div class="player-info">
+                                        <span class="player-name ${isCurrentUser ? 'current-user' : ''}">
+                                            ${escapeHtml(player.displayName)}
+                                            ${isCurrentUser ? '<span class="you-badge">You</span>' : ''}
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="stat-cell">
+                                <span class="stat-value gold">${player.gamesWon}</span>
+                                <span class="stat-label">Wins</span>
+                            </td>
+                            <td class="stat-cell">
+                                <span class="stat-value">${player.gamesPlayed}</span>
+                                <span class="stat-label">Games</span>
+                            </td>
+                            <td class="stat-cell hide-mobile">
+                                <span class="stat-value green">${player.winRate}%</span>
+                                <span class="stat-label">Rate</span>
+                            </td>
+                            <td class="stat-cell hide-mobile">
+                                <span class="stat-value">${player.totalScore.toLocaleString()}</span>
+                                <span class="stat-label">Total</span>
+                            </td>
+                            <td class="stat-cell">
+                                <span class="stat-value">${player.highestScore}</span>
+                                <span class="stat-label">Best</span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+                loadingState.style.display = 'none';
+                emptyState.innerHTML = `
+                    <div class="icon">⚠️</div>
+                    <h3>Error Loading Leaderboard</h3>
+                    <p>Please try again later.</p>
+                `;
+                emptyState.style.display = 'block';
+            }
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

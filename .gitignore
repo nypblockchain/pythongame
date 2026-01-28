@@ -1,16 +1,13 @@
 # Virtual environment
 venv/
-.venv/
 env/
+.venv/
 
-# Python
+# Python cache
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
-*.egg-info/
-.eggs/
 
 # IDE
 .idea/
@@ -18,13 +15,23 @@ __pycache__/
 *.swp
 *.swo
 
+# OS
+.DS_Store
+Thumbs.db
+
 # Environment variables
 .env
 .env.local
 
-# OS files
-.DS_Store
-Thumbs.db
+# Firebase credentials (NEVER commit these!)
+firebase-credentials.json
+*-firebase-adminsdk-*.json
+serviceAccountKey.json
 
 # Logs
 *.log
+
+# Distribution
+dist/
+build/
+*.egg-info/

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: python-card-game
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --worker-class geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 --bind 0.0.0.0:$PORT app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FIREBASE_CREDENTIALS
+        sync: false  # Set this manually in Render dashboard with your Firebase service account JSON
+      - key: FIREBASE_PROJECT_ID
+        sync: false  # Set this manually in Render dashboard with your Firebase project ID
