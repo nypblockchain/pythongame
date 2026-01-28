@@ -335,30 +335,39 @@ def test_special_cards_reset_wild_flag():
 
 
 def test_playable_cards_with_paren_restriction():
-    """Test that playable cards respects paren restriction."""
+    """Test that playable cards respects paren restriction based on actual Python syntax."""
     print("\n" + "=" * 60)
     print("TEST 7: Playable Cards with Paren Restriction")
     print("=" * 60)
     
     all_pass = True
     
-    # Hand contains ) but no open paren - ) should not be in playable
+    # Test 1: With an open paren in played_cards, ) should be playable
     hand = ["x", ")", "+", "1"]
-    played_cards = ["print", "(", "x"]  # After variable, ) could follow syntactically
+    played_cards = ["print", "(", "x"]  # One open paren
     
-    # With open_paren_count = 1, ) should be playable
-    playable_with_open = get_playable_cards(hand, played_cards, open_paren_count=1)
+    playable_with_open = get_playable_cards(hand, played_cards)
     status1 = "PASS" if ")" in playable_with_open else "FAIL"
     if ")" not in playable_with_open:
         all_pass = False
-    print(f"  {status1} ')' in playable with open_paren_count=1: {')' in playable_with_open}")
+    print(f"  {status1} ')' in playable when sequence has open paren: {')' in playable_with_open}")
     
-    # With open_paren_count = 0, ) should NOT be playable
-    playable_without = get_playable_cards(hand, played_cards, open_paren_count=0)
-    status2 = "PASS" if ")" not in playable_without else "FAIL"
-    if ")" in playable_without:
+    # Test 2: Without an open paren, ) should NOT be playable (would create invalid Python)
+    # Use a sequence with balanced parens
+    played_cards_balanced = ["print", "(", "x", ")"]  # Balanced - adding ) would be invalid
+    playable_balanced = get_playable_cards(hand, played_cards_balanced)
+    status2 = "PASS" if ")" not in playable_balanced else "FAIL"
+    if ")" in playable_balanced:
         all_pass = False
-    print(f"  {status2} ')' not in playable with open_paren_count=0: {')' not in playable_without}")
+    print(f"  {status2} ')' not in playable when parens are balanced: {')' not in playable_balanced}")
+    
+    # Test 3: At the start, ) should not be playable (no context for it)
+    played_cards_empty = []
+    playable_empty = get_playable_cards(hand, played_cards_empty)
+    status3 = "PASS" if ")" not in playable_empty else "FAIL"
+    if ")" in playable_empty:
+        all_pass = False
+    print(f"  {status3} ')' not playable at start: {')' not in playable_empty}")
     
     return all_pass
 
